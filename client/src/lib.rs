@@ -20,7 +20,7 @@ pub async fn raw(data: Box<[u8]>) -> u8 {
         let ptr = data.as_ptr() as *const shared::Person;
         std::slice::from_raw_parts(ptr, data.len() / std::mem::size_of::<shared::Person>())
     };
-    average(futures::stream::iter(data.into_iter())).await
+    average(futures::stream::iter(data)).await
 }
 
 #[wasm_bindgen]
@@ -90,12 +90,10 @@ impl<'a> futures::Stream for ReinterpretStream<'a> {
             let person = unsafe { (bytes.as_ptr() as *const shared::Person).as_ref().unwrap() };
             self.offset += STRIDE;
             Poll::Ready(Some(&person))
+        } else if futures::stream::FusedStream::is_terminated(&self.inner) {
+            Poll::Ready(None)
         } else {
-            if futures::stream::FusedStream::is_terminated(&self.inner) {
-                Poll::Ready(None)
-            } else {
-                Poll::Pending
-            }
+            Poll::Pending
         }
     }
 }
