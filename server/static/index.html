@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WASM DATA</title>
+    <style type="text/css">
+    </style>
+    <script type="module">
+      import init, { json_wasm_parse, json_parse, raw, stream, bincode_parse } from './wasm/client.js';
+
+      async function run() {
+        await init();
+
+        {
+          let response = await fetch('/data/people.json');
+          let start = performance.now();
+          let data = await response.arrayBuffer();
+          let bytes = new Uint8Array(data);
+          let result = await json_parse(bytes);
+          let end = performance.now();
+          console.log(end - start, result);
+        }
+
+        {
+          let response = await fetch('/data/people.json');
+          let start = performance.now();
+          let json = await response.json();
+          let result = await json_wasm_parse(json);
+          let end = performance.now();
+          console.log(end - start, result);
+        }
+
+        {
+          let response = await fetch('/data/people.bin');
+          let start = performance.now();
+          let data = await response.arrayBuffer();
+          let bytes = new Uint8Array(data);
+          let result = await raw(bytes);
+          let end = performance.now();
+          console.log(end - start, result);
+        }
+
+        {
+          let response = await fetch('/data/people.bin');
+          let start = performance.now();
+          let readableStream = response.body;
+          let result = await stream(readableStream);
+          let end = performance.now();
+          console.log(end - start, result);
+        }
+
+        {
+          let response = await fetch('/data/people.bincode');
+          let start = performance.now();
+          let data = await response.arrayBuffer();
+          let bytes = new Uint8Array(data);
+          let result = await bincode_parse(bytes);
+          let end = performance.now();
+          console.log(end - start, result);
+        }
+      }
+      run()
+    </script>
+  </head>
+  <body>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+  </body>
+</html>
