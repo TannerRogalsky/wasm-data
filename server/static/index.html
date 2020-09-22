@@ -11,53 +11,57 @@
       async function run() {
         await init();
 
+        let results = {}
+
         {
           let response = await fetch('/data/people.json');
-          let start = performance.now();
           let data = await response.arrayBuffer();
+          let start = performance.now();
           let bytes = new Uint8Array(data);
           let result = await json_parse(bytes);
           let end = performance.now();
-          console.log(end - start, result);
+          results.json_parse = { time: end - start, result: result };
         }
 
         {
           let response = await fetch('/data/people.json');
-          let start = performance.now();
           let json = await response.json();
+          let start = performance.now();
           let result = await json_wasm_parse(json);
           let end = performance.now();
-          console.log(end - start, result);
+          results.json_wasm_parse = { time: end - start, result: result };
         }
 
         {
           let response = await fetch('/data/people.bin');
-          let start = performance.now();
           let data = await response.arrayBuffer();
+          let start = performance.now();
           let bytes = new Uint8Array(data);
           let result = await raw(bytes);
           let end = performance.now();
-          console.log(end - start, result);
+          results.raw = { time: end - start, result: result };
         }
 
         {
           let response = await fetch('/data/people.bin');
-          let start = performance.now();
           let readableStream = response.body;
+          let start = performance.now();
           let result = await stream(readableStream);
           let end = performance.now();
-          console.log(end - start, result);
+          results.stream = { time: end - start, result: result };
         }
 
         {
           let response = await fetch('/data/people.bincode');
-          let start = performance.now();
           let data = await response.arrayBuffer();
+          let start = performance.now();
           let bytes = new Uint8Array(data);
           let result = await bincode_parse(bytes);
           let end = performance.now();
-          console.log(end - start, result);
+          results.bincode_parse = { time: end - start, result: result };
         }
+
+        console.table(results);
       }
       run()
     </script>
